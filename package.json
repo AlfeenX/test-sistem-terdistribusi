@@ -9,8 +9,8 @@
     "db:push": "pnpm -r run db:push",
     "db:migrate": "pnpm -r run db:migrate",
     "db:seed": "pnpm -r --if-present run db:seed",
-    "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "podman:up": "podman compose up -d",
+    "podman:down": "podman compose down"
   },
   "engines": {
     "node": ">=18"

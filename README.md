@@ -1,102 +1,125 @@
-# Gajayana Sport Center – Event-Driven Architecture
+# 🏟️ Gajayana Sport Center – Distributed Event-Driven Architecture
 
-Monorepo with **TypeScript**, **Node.js**, **Express**, **RabbitMQ**, **Prisma**, **PostgreSQL**, and **Docker Compose**. Package manager: **pnpm**.
+A premium, high-performance monorepo implementing a **Distributed Event-Driven Architecture** for managing a sports center. Built with mission-critical reliability using **TypeScript**, **RabbitMQ**, and **PostgreSQL**.
 
-## Services
+---
 
-| Service              | Port | Database         | Description                    |
-|----------------------|------|------------------|--------------------------------|
-| api-gateway          | 3000 | —                | Proxies to all services        |
-| user-service         | 3001 | users_db         | Users, roles, memberships      |
-| field-service        | 3002 | fields_db        | Facilities, slots              |
-| booking-service      | 3003 | bookings_db      | Bookings                       |
-| payment-service      | 3004 | payments_db      | Invoices, payments             |
-| notification-service | 3005 | notifications_db | Event-driven notifications    |
+## ⚡ Tech Stack
 
-## Prerequisites
+| Component | Technology |
+| :--- | :--- |
+| **Runtime** | [Node.js v18+](https://nodejs.org/) |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) |
+| **API Framework** | [Express](https://expressjs.com/) |
+| **Message Broker** | [RabbitMQ](https://www.rabbitmq.com/) |
+| **ORM** | [Prisma](https://www.prisma.io/) |
+| **Database** | [PostgreSQL 16](https://www.postgresql.org/) |
+| **Package Manager** | [pnpm v10+](https://pnpm.io/) |
+| **Orchestration** | [Podman Compose](https://podman.io/) / Docker Compose |
+| **Gateway** | [Nginx](https://www.nginx.com/) |
 
-- Node.js 18+
-- pnpm 9+
-- Docker & Docker Compose (for full stack)
-- PostgreSQL 16 (if running services locally without Docker)
+---
 
-## Quick start (Docker)
+## 🏗️ Microservices Architecture
 
+Each service is independently deployable, has its own dedicated database, and communicates asynchronously via events.
+
+| Service | Port | Database | Responsibilities |
+| :--- | :--- | :--- | :--- |
+| **api-gateway** | `3000` | — | High-performance Nginx reverse proxy |
+| **user-service** | `3001` | `users_db` | Identity, RBAC, Membership lifecycle |
+| **field-service** | `3002`, `3006` | `fields_db` | Facility management, Real-time slot availability |
+| **booking-service** | `3003` | `bookings_db` | Booking orchestration, Status state machine |
+| **payment-service** | `3004` | `payments_db` | Invoice generation, Payment reconciliation |
+| **notification-service** | `3005` | `notifications_db` | Event-driven alerts, Idempotent delivery logs |
+
+---
+
+## 🚀 Quick Start (Podman/Docker)
+
+Experience the full distributed system in minutes.
+
+### 1. Configure Environment
 ```bash
-# Start infrastructure + all services
-pnpm docker:up
-
-# Apply DB schemas and seed (run once after DBs are up)
-# From project root, with containers running:
-pnpm --filter @gajayana/user-service exec prisma db push
-pnpm --filter @gajayana/user-service exec prisma db seed
-pnpm --filter @gajayana/field-service exec prisma db push
-pnpm --filter @gajayana/field-service exec prisma db seed
-pnpm --filter @gajayana/booking-service exec prisma db push
-pnpm --filter @gajayana/payment-service exec prisma db push
-pnpm --filter @gajayana/payment-service exec prisma db seed
-pnpm --filter @gajayana/notification-service exec prisma db push
+cp .env.example .env
+# Edit .env and ensure ports match your local environment
 ```
 
-API Gateway: http://localhost:3000  
-RabbitMQ Management: http://localhost:15672 (guest/guest)
-
-## Local development (without Docker for app processes)
-
-1. Start RabbitMQ and PostgreSQL instances (e.g. via Docker):
-
+### 2. Launch Infrastructure & Services
 ```bash
-docker compose up -d rabbitmq postgres-user postgres-field postgres-booking postgres-payment postgres-notification
+pnpm podman:up
 ```
 
-2. Copy `.env.example` to `.env` and set `DATABASE_URL_*` and `RABBITMQ_URL` per service.
-
-3. Install and build:
-
+### 3. Initialize Databases
+Sync schemas and populate initial data:
 ```bash
-pnpm install
-pnpm --filter @gajayana/shared build
-pnpm -r run db:push
-pnpm -r run db:seed
+pnpm db:push
+pnpm db:seed
 ```
 
-4. Run all services (in separate terminals or use a process manager):
+---
 
-```bash
-pnpm --filter @gajayana/user-service run dev
-pnpm --filter @gajayana/field-service run dev
-pnpm --filter @gajayana/booking-service run dev
-pnpm --filter @gajayana/payment-service run dev
-pnpm --filter @gajayana/notification-service run dev
-pnpm --filter @gajayana/api-gateway run dev
-```
+## 🛠️ Local Development
 
-## API (via Gateway, base URL http://localhost:3000)
+For active development with hot-reloading:
 
-- `GET/POST /api/users` – list / create users
-- `GET/PATCH /api/users/:id` – get / update user
-- `GET /api/memberships/plans` – membership plans
-- `POST /api/memberships` – create membership
-- `GET /api/facilities`, `GET /api/facilities/types` – facilities
-- `POST /api/slots`, `GET /api/slots/facility/:facilityId/available?date=YYYY-MM-DD` – slots
-- `POST /api/slots/:id/reserve`, `POST /api/slots/:id/release` – reserve / release slot
-- `POST /api/bookings`, `GET /api/bookings/:id`, `POST /api/bookings/:id/confirm`, `POST /api/bookings/:id/cancel`
-- `GET /api/invoices/user/:userId`, `GET /api/invoices/:id`, `POST /api/invoices/payments`, `POST /api/invoices/payments/:id/complete`
+1. **Start Infrastructure Only**:
+   ```bash
+   podman compose up -d rabbitmq postgres-user postgres-field postgres-booking postgres-payment postgres-notification
+   ```
+2. **Install & Build Shared Packages**:
+   ```bash
+   pnpm install
+   pnpm --filter @gajayana/shared build
+   ```
+3. **Run All Services**:
+   ```bash
+   pnpm dev
+   ```
 
-## Event flow (RabbitMQ)
+---
 
-- **user-service**: publishes `user.created`, `user.updated`, `membership.changed`
-- **field-service**: publishes `field.created`, `slot.booked`, `slot.released`
-- **booking-service**: publishes `booking.created`, `booking.confirmed`, `booking.cancelled`; consumes `payment.completed` → confirms booking
-- **payment-service**: consumes `booking.confirmed` → creates invoice; publishes `payment.completed`, `payment.failed`
-- **notification-service**: consumes `user.created`, `booking.created`, `booking.confirmed`, `payment.completed` → logs notifications (idempotent)
+## 📡 API Endpoints (Gateway: `http://localhost:3000`)
 
-## Database design
+### 👤 User & Membership
+- `POST /api/users` – Create new user
+- `GET /api/users` – List all users
+- `GET /api/users/:id` – Fetch user profile
+- `GET /api/memberships/plans` – Browse membership plans
+- `POST /api/memberships` – Purchase membership
 
-Each service has its own PostgreSQL database, normalized to at least **3NF**, with indexes for:
+### 🎾 Facilities & Slots
+- `GET /api/facilities` – List sports facilities
+- `GET /api/facilities/types` – List facility categories
+- `GET /api/slots/facility/:id/available` – Real-time availability lookup
+- `POST /api/slots/:id/reserve` – Temporary slot hold
 
-- Lookups: unique on business keys (email, booking_id for invoice, reference_number)
-- Filters: status, dates, user_id, facility_id, slot_id
-- Composite indexes for common queries (e.g. facility_id + slot_date, booking_date + status)
+### 📅 Bookings
+- `POST /api/bookings` – Create booking request
+- `GET /api/bookings/:id` – View booking status
+- `POST /api/bookings/:id/confirm` – Finalize booking
+- `GET /api/bookings/user/:userId` – User's booking history
 
-See **ARCHITECTURE_PLAN.md** for full schema and event details.
+### 💳 Payments & Invoices
+- `GET /api/invoices/user/:userId` – User's billing history
+- `POST /api/invoices/payments` – Initiate payment
+- `POST /api/invoices/payments/:id/complete` – Mark payment as successful
+
+---
+
+## 🔄 Event Flow (Messaging)
+
+The system uses a **Topic Exchange** pattern for reliable cross-service communication:
+
+- **`user-service`** ➔ `user.created`, `membership.changed`
+- **`field-service`** ➔ `slot.booked`, `slot.released`
+- **`booking-service`** ➔ `booking.created`, `booking.confirmed`
+- **`payment-service`** ➔ `payment.completed`, `payment.failed`
+
+---
+
+## 🔍 Health & Monitoring
+- **Gateway Health**: `http://localhost:3000/health`
+- **RabbitMQ Dashboard**: `http://localhost:15672` (guest/guest)
+- **Database Visualizer**: Use [Prisma Studio](https://www.prisma.io/studio) in each service directory.
+
