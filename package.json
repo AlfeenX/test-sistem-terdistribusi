@@ -1,0 +1,19 @@
+{
+  "name": "gajayana-sport-center",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r --parallel run dev",
+    "build": "pnpm -r run build",
+    "db:generate": "pnpm -r run db:generate",
+    "db:push": "pnpm -r run db:push",
+    "db:migrate": "pnpm -r run db:migrate",
+    "db:seed": "pnpm -r --if-present run db:seed",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@10.33.2"
+}

@@ -1,0 +1,7 @@
+export const config = {
+  port: parseInt(process.env["PORT"] ?? "3003", 10),
+  databaseUrl: process.env["DATABASE_URL"] ?? "postgresql://postgres:postgres@localhost:5434/bookings_db",
+  rabbitmqUrl: process.env["RABBITMQ_URL"] ?? "amqp://guest:guest@localhost:5672",
+  rabbitmqExchange: process.env["RABBITMQ_EXCHANGE"] ?? "gajayana_events",
+  fieldServiceUrl: process.env["FIELD_SERVICE_URL"] ?? "http://localhost:3002",
+};

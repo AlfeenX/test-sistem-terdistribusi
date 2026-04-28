@@ -1,0 +1,31 @@
+# Dependencies — we install in the container
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+**/dist
+**/tsconfig.tsbuildinfo
+.next
+**/.next
+
+# Git and IDE
+.git
+.gitignore
+.cursor
+.vscode
+*.md
+
+# Env files (secrets; use compose env instead)
+.env
+.env.*
+!.env.example
+
+# Logs and misc
+*.log
+.DS_Store
+coverage
+**/coverage
+
+# Prisma generated (regenerated in build)
+**/generated

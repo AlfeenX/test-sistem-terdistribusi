@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+datasource db {
+  provider = "postgresql"
+}
+
+model NotificationLog {
+  id          String   @id @default(cuid())
+  eventType   String   @map("event_type")
+  payloadHash String   @map("payload_hash")
+  userId      String?  @map("user_id")
+  channel     String
+  sentAt      DateTime @default(now()) @map("sent_at")
+
+  @@unique([eventType, payloadHash])
+  @@index([userId])
+  @@index([sentAt])
+  @@map("notification_log")
+}

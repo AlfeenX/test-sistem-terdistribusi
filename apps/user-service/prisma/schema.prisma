@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client"
+  output = "../src/generated"
+}
+datasource db {
+  provider = "postgresql"
+}
+
+
+model Role {
+  id   String @id @default(cuid())
+  name String @unique
+  users User[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  phone     String?
+  fullName  String   @map("full_name")
+  roleId    String   @map("role_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  role         Role             @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  memberships  UserMembership[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([roleId])
+  @@map("users")
+}
+
+model MembershipPlan {
+  id           String   @id @default(cuid())
+  name         String
+  durationDays Int      @map("duration_days")
+  price        Decimal  @db.Decimal(12, 2)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  memberships UserMembership[]
+
+  @@map("membership_plans")
+}
+
+model UserMembership {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  planId    String   @map("plan_id")
+  startedAt DateTime @map("started_at")
+  expiresAt DateTime @map("expires_at")
+  status    String   @default("active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan MembershipPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([status])
+  @@map("user_memberships")
+}

@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+datasource db {
+  provider = "postgresql"
+}
+
+
+model FacilityType {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  facilities Facility[]
+}
+
+model Facility {
+  id              String   @id @default(cuid())
+  name            String
+  facilityTypeId  String   @map("facility_type_id")
+  hourlyRate      Decimal  @map("hourly_rate") @db.Decimal(12, 2)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  facilityType FacilityType @relation(fields: [facilityTypeId], references: [id], onDelete: Restrict)
+  slots        Slot[]
+
+  @@index([facilityTypeId])
+  @@map("facilities")
+}
+
+model Slot {
+  id         String   @id @default(cuid())
+  facilityId String   @map("facility_id")
+  slotDate   DateTime @map("slot_date") @db.Date
+  startTime  String   @map("start_time")
+  endTime    String   @map("end_time")
+  status     String   @default("available")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  @@unique([facilityId, slotDate, startTime])
+  @@index([facilityId, slotDate])
+  @@index([slotDate, status])
+  @@map("slots")
+}

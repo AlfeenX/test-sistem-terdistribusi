@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+datasource db {
+  provider = "postgresql"
+}
+
+model Booking {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  facilityId   String   @map("facility_id")
+  slotId       String   @map("slot_id")
+  bookingDate  DateTime @map("booking_date") @db.Date
+  startTime    String   @map("start_time")
+  endTime      String   @map("end_time")
+  totalAmount  Decimal  @map("total_amount") @db.Decimal(12, 2)
+  status       String   @default("pending")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  statusHistory BookingStatusHistory[]
+
+  @@index([userId])
+  @@index([slotId])
+  @@index([bookingDate, status])
+  @@index([status])
+  @@map("bookings")
+}
+
+model BookingStatusHistory {
+  id          String   @id @default(cuid())
+  bookingId   String   @map("booking_id")
+  fromStatus  String?  @map("from_status")
+  toStatus    String   @map("to_status")
+  changedAt   DateTime @default(now()) @map("changed_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@map("booking_status_history")
+}

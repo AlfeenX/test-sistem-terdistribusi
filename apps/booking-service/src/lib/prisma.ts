@@ -1,0 +1,28 @@
+import { config } from "dotenv";
+import path from "node:path";
+import pg from "pg";
+import {
+  PrismaClient,
+  type Booking,
+  type BookingStatusHistory,
+} from "../generated/client.js";
+import { PrismaPg } from "@prisma/adapter-pg";
+
+// Try local .env, then root .env
+config();
+config({ path: path.resolve(process.cwd(), "../../.env") });
+
+const connectionString =
+  process.env.DATABASE_URL_BOOKING || process.env.DATABASE_URL;
+const pool = new pg.Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+
+export const prisma = new PrismaClient({
+  adapter,
+  log:
+    process.env["NODE_ENV"] === "development"
+      ? ["query", "error", "warn"]
+      : ["error"],
+});
+
+export type { Booking, BookingStatusHistory };
