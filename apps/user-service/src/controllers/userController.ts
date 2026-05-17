@@ -77,3 +77,68 @@ export async function listRoles(_req: Request, res: Response): Promise<void> {
   const roles = await userService.getRoles();
   res.json(roles);
 }
+
+import { hashPassword } from "../lib/hash.js";
+
+export async function registerUser(req: Request, res: Response): Promise<void> {
+  try {
+    const { email, phone, fullName, roleId, password } = req.body as {
+      email: string;
+      phone?: string;
+      fullName: string;
+      roleId: string;
+      password?: string;
+    };
+    if (!email || !fullName || !roleId || !password) {
+      res.status(400).json({ error: "email, fullName, roleId, password required" });
+      return;
+    }
+    const user = await userService.createUser({ email, phone, fullName, roleId, password });
+    const channel = getChannel();
+    if (channel) {
+      await publishUserCreated(channel, {
+        userId: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        roleId: user.roleId,
+        createdAt: user.createdAt.toISOString(),
+      });
+    }
+    res.status(201).json(user);
+  } catch (e) {
+    log.error("registerUser failed", e);
+    res.status(500).json({ error: "Failed to register user" });
+  }
+}
+
+export async function loginUser(req: Request, res: Response): Promise<void> {
+  try {
+    const { email, password } = req.body as { email?: string; password?: string };
+    if (!email || !password) {
+      res.status(400).json({ error: "email and password are required" });
+      return;
+    }
+    const user = await userService.findUserByEmail(email);
+    if (!user) {
+      res.status(401).json({ error: "Invalid email or password" });
+      return;
+    }
+    const inputHash = hashPassword(password);
+    if (user.password !== inputHash) {
+      res.status(401).json({ error: "Invalid email or password" });
+      return;
+    }
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role.name,
+      },
+    });
+  } catch (e) {
+    log.error("loginUser failed", e);
+    res.status(500).json({ error: "Failed to authenticate" });
+  }
+}

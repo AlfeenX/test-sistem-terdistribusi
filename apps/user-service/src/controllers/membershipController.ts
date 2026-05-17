@@ -54,3 +54,13 @@ export async function listPlans(_req: Request, res: Response): Promise<void> {
   const plans = await membershipService.getMembershipPlans();
   res.json(plans);
 }
+
+export async function listMemberships(_req: Request, res: Response): Promise<void> {
+  try {
+    const list = await membershipService.listMemberships();
+    res.json(list);
+  } catch (e) {
+    log.error("listMemberships failed", e);
+    res.status(500).json({ error: "Failed to list memberships" });
+  }
+}

@@ -43,13 +43,10 @@ export async function getSlot(req: Request, res: Response): Promise<void> {
 export async function getAvailableSlots(req: Request, res: Response): Promise<void> {
   const facilityId = req.params["facilityId"]!;
   const dateStr = req.query["date"] as string;
-  if (!dateStr) {
-    res.status(400).json({ error: "query date required (YYYY-MM-DD)" });
-    return;
-  }
+  const date = dateStr ? new Date(dateStr) : undefined;
   const slots = await facilityService.findAvailableSlots(
     facilityId as string,
-    new Date(dateStr)
+    date
   );
   res.json(slots);
 }

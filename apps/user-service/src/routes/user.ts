@@ -2,6 +2,9 @@ import { Router } from "express";
 import * as userController from "../controllers/userController.js";
 
 export const userRoutes: Router = Router();
+userRoutes.post("/login", userController.loginUser);
+userRoutes.post("/register", userController.registerUser);
+userRoutes.get("/roles", userController.listRoles);
 userRoutes.post("/", userController.createUser);
 userRoutes.get("/", userController.listUsers);
 userRoutes.get("/:id", userController.getUserById);

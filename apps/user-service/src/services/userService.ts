@@ -1,18 +1,22 @@
 import { prisma } from "../lib/prisma.js";
 import { User, Role, Prisma } from "../generated/client.js";
+import { hashPassword } from "../lib/hash.js";
 
 export async function createUser(data: {
   email: string;
   phone?: string;
   fullName: string;
   roleId: string;
+  password?: string;
 }): Promise<User> {
+  const hashedPassword = data.password ? hashPassword(data.password) : "";
   return prisma.user.create({
     data: {
       email: data.email,
       phone: data.phone ?? null,
       fullName: data.fullName,
       roleId: data.roleId,
+      password: hashedPassword,
     },
   });
 }

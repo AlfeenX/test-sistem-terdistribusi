@@ -34,6 +34,33 @@ export async function createFacility(req: Request, res: Response): Promise<void>
   }
 }
 
+export async function updateFacility(req: Request, res: Response): Promise<void> {
+  try {
+    const id = req.params["id"] as string;
+    const { name, facilityTypeId, hourlyRate } = req.body as {
+      name?: string;
+      facilityTypeId?: string;
+      hourlyRate?: number;
+    };
+    const updated = await facilityService.updateFacility(id, { name, facilityTypeId, hourlyRate });
+    res.json(updated);
+  } catch (e) {
+    log.error("updateFacility failed", e);
+    res.status(500).json({ error: "Failed to update facility" });
+  }
+}
+
+export async function deleteFacility(req: Request, res: Response): Promise<void> {
+  try {
+    const id = req.params["id"] as string;
+    await facilityService.deleteFacility(id);
+    res.status(204).end();
+  } catch (e) {
+    log.error("deleteFacility failed", e);
+    res.status(500).json({ error: "Failed to delete facility" });
+  }
+}
+
 export async function getFacility(req: Request, res: Response): Promise<void> {
   const facility = await facilityService.findFacilityById(req.params["id"]! as string);
   if (!facility) {
@@ -58,3 +85,46 @@ export async function listFacilityTypes(_req: Request, res: Response): Promise<v
   const types = await facilityService.getFacilityTypes();
   res.json(types);
 }
+
+export async function createFacilityType(req: Request, res: Response): Promise<void> {
+  try {
+    const { name } = req.body as { name: string };
+    if (!name) {
+      res.status(400).json({ error: "name is required" });
+      return;
+    }
+    const type = await facilityService.createFacilityType({ name });
+    res.status(201).json(type);
+  } catch (e) {
+    log.error("createFacilityType failed", e);
+    res.status(500).json({ error: "Failed to create facility type" });
+  }
+}
+
+export async function updateFacilityType(req: Request, res: Response): Promise<void> {
+  try {
+    const id = req.params["id"] as string;
+    const { name } = req.body as { name: string };
+    if (!name) {
+      res.status(400).json({ error: "name is required" });
+      return;
+    }
+    const type = await facilityService.updateFacilityType(id, { name });
+    res.json(type);
+  } catch (e) {
+    log.error("updateFacilityType failed", e);
+    res.status(500).json({ error: "Failed to update facility type" });
+  }
+}
+
+export async function deleteFacilityType(req: Request, res: Response): Promise<void> {
+  try {
+    const id = req.params["id"] as string;
+    await facilityService.deleteFacilityType(id);
+    res.status(204).end();
+  } catch (e) {
+    log.error("deleteFacilityType failed", e);
+    res.status(500).json({ error: "Failed to delete facility type. It might be referenced by facilities." });
+  }
+}
+

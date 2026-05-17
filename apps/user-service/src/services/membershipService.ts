@@ -36,3 +36,16 @@ export async function updateMembershipStatus(
 export async function getMembershipPlans(): Promise<MembershipPlan[]> {
   return prisma.membershipPlan.findMany({ orderBy: { name: "asc" } });
 }
+
+export async function listMemberships(): Promise<(UserMembership & { user: any; plan: MembershipPlan })[]> {
+  return prisma.userMembership.findMany({
+    include: {
+      user: true,
+      plan: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  }) as any;
+}
+
